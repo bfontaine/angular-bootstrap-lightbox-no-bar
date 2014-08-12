@@ -1,5 +1,5 @@
 angular.module('bootstrapLightbox')
-    .directive('lightboxSrc', function ($window, cfpLoadingBar, Lightbox) {
+    .directive('lightboxSrc', function ($window, Lightbox) {
   /**
    * Calculate the dimensions to display the image. The max dimensions
    *   override the min dimensions if they conflict.
@@ -145,8 +145,6 @@ angular.module('bootstrapLightbox')
 
           // show the image
           element[0].src = src;
-
-          cfpLoadingBar.complete();
         };
       });
 

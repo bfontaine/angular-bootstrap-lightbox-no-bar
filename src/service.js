@@ -62,7 +62,7 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
     };
   };
 
-  this.$get = function service($document, $modal, $timeout, cfpLoadingBar) {
+  this.$get = function service($document, $modal, $timeout) {
     // whether the lightbox is currently open; used in the keydown event handler
     var opened = false;
 
@@ -85,7 +85,6 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
       images = newImages;
       index = newIndex;
       Lightbox.image = images[index];
-      cfpLoadingBar.start();
 
       $modal.open({
         'templateUrl': Lightbox.templateUrl,
@@ -96,7 +95,6 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
         }],
         'windowClass': 'lightbox-modal'
       }).result.finally(function () {
-        cfpLoadingBar.complete();
         opened = false;
       });
     };
@@ -105,7 +103,6 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
     var setImage = function (newIndex) {
       index = newIndex;
       Lightbox.image = images[index];
-      cfpLoadingBar.start();
     };
     Lightbox.firstImage = function () {
       setImage(0);

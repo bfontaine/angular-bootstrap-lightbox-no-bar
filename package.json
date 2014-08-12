@@ -1,5 +1,5 @@
 {
-  "name": "angular-bootstrap-lightbox",
+  "name": "angular-bootstrap-lightbox-no-bar",
   "version": "0.2.1",
   "dependencies": {},
   "devDependencies": {
@@ -27,5 +27,9 @@
   },
   "engines": {
     "node": ">=0.8.0"
+  },
+  "repository": {
+      "type": "git",
+      "url": "git://github.com/bfontaine/angular-bootstrap-lightbox.git"
   }
 }

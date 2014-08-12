@@ -1,9 +1,9 @@
 {
-  "name": "angular-bootstrap-lightbox",
+  "name": "angular-bootstrap-lightbox-no-bar",
   "version": "0.2.1",
   "main": [
-    "dist/angular-bootstrap-lightbox.js",
-    "dist/angular-bootstrap-lightbox.css"
+    "dist/angular-bootstrap-lightbox-no-bar.js",
+    "dist/angular-bootstrap-lightbox-no-bar.css"
   ],
   "ignore": [
     "src",
@@ -13,9 +13,7 @@
   ],
   "dependencies": {
     "angular": "~1.2.14",
-    "angular-touch": "~1.2.14",
     "angular-bootstrap": "~0.10.0",
-    "angular-loading-bar": "~0.3.0",
     "bootstrap": "~3.1.1"
   },
   "devDependencies": {

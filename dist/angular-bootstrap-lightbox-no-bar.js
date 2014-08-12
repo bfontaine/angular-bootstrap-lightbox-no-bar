@@ -1,13 +1,11 @@
 angular.module('bootstrapLightbox', [
-  'ngTouch',
-  'ui.bootstrap',
-  'chieffancypants.loadingBar',
+  'ui.bootstrap'
 ]);
 angular.module('bootstrapLightbox').run(['$templateCache', function($templateCache) {
   'use strict';
 
   $templateCache.put('lightbox.html',
-    "<div class=modal-body ng-swipe-left=Lightbox.prevImage() ng-swipe-right=Lightbox.nextImage()><div class=lightbox-nav><button class=close aria-hidden=true ng-click=$dismiss()>×</button><div class=btn-group><a class=\"btn btn-xs btn-default\" ng-click=Lightbox.prevImage()>‹ Previous</a> <a ng-href={{Lightbox.image.url}} target=_blank class=\"btn btn-xs btn-default\" title=\"Open in new tab\">Open image in new tab</a> <a class=\"btn btn-xs btn-default\" ng-click=Lightbox.nextImage()>Next ›</a></div></div><div class=lightbox-image-container><div class=lightbox-image-caption><span>{{Lightbox.image.caption}}</span></div><img lightbox-src={{Lightbox.image.url}} alt=\"\"></div></div>"
+    "<div class=modal-body><div class=lightbox-nav><button class=close aria-hidden=true ng-click=$dismiss()>×</button><div class=btn-group><a class=\"btn btn-xs btn-default\" ng-click=Lightbox.prevImage()>‹ Previous</a> <a ng-href={{Lightbox.image.url}} target=_blank class=\"btn btn-xs btn-default\" title=\"Open in new tab\">Open image in new tab</a> <a class=\"btn btn-xs btn-default\" ng-click=Lightbox.nextImage()>Next ›</a></div></div><div class=lightbox-image-container><div class=lightbox-image-caption><span>{{Lightbox.image.caption}}</span></div><img lightbox-src={{Lightbox.image.url}} alt=\"\"></div></div>"
   );
 
 }]);
@@ -75,7 +73,7 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
     };
   };
 
-  this.$get = function service($document, $modal, $timeout, cfpLoadingBar) {
+  this.$get = function service($document, $modal, $timeout) {
     // whether the lightbox is currently open; used in the keydown event handler
     var opened = false;
 
@@ -98,7 +96,6 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
       images = newImages;
       index = newIndex;
       Lightbox.image = images[index];
-      cfpLoadingBar.start();
 
       $modal.open({
         'templateUrl': Lightbox.templateUrl,
@@ -109,7 +106,6 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
         }],
         'windowClass': 'lightbox-modal'
       }).result.finally(function () {
-        cfpLoadingBar.complete();
         opened = false;
       });
     };
@@ -118,7 +114,6 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
     var setImage = function (newIndex) {
       index = newIndex;
       Lightbox.image = images[index];
-      cfpLoadingBar.start();
     };
     Lightbox.firstImage = function () {
       setImage(0);
@@ -169,7 +164,7 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
   };
 });
 angular.module('bootstrapLightbox')
-    .directive('lightboxSrc', function ($window, cfpLoadingBar, Lightbox) {
+    .directive('lightboxSrc', function ($window, Lightbox) {
   /**
    * Calculate the dimensions to display the image. The max dimensions
    *   override the min dimensions if they conflict.
@@ -315,8 +310,6 @@ angular.module('bootstrapLightbox')
 
           // show the image
           element[0].src = src;
-
-          cfpLoadingBar.complete();
         };
       });
 
