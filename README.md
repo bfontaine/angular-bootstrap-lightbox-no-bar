@@ -1,7 +1,7 @@
 # angular-bootstrap-lightbox-no-bar
 
 Note: this is a fork of the [original project][origin] that doesn’t depend on
-`angular-loading-bar`nor `ngTouch`.
+`angular-loading-bar` nor `ngTouch`.
 
 [origin]: https://github.com/compact/angular-bootstrap-lightbox
 
