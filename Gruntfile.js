@@ -17,8 +17,9 @@ module.exports = function (grunt) {
         src: [
           'src/module.js',
           '.tmp/templates.js',
-          'src/service.js',
-          'src/directive.js',
+          'src/image-loader-service.js',
+          'src/lightbox-service.js',
+          'src/lightbox-src-directive.js'
         ],
         dest: 'dist/<%= library.name %>.js'
       },
@@ -33,24 +34,12 @@ module.exports = function (grunt) {
       beforeConcat: {
         src: ['Gruntfile.js', 'src/**/*.js']
       },
-      afterConcat: {
-        src: [
-          '<%= concat.library.dest %>'
-        ]
-      },
+      afterConcat: {},
       options: {
-        // options here to override JSHint defaults
-        globals: {
-          jQuery: true,
-          console: true,
-          module: true,
-          document: true,
-          angular: true
-        },
-        globalstrict: false
+        jshintrc: '.jshintrc'
       }
     },
-    ngmin: {
+    ngAnnotate: {
       dist: {
         files: [{
           src: '<%= concat.library.dest %>',
@@ -100,8 +89,7 @@ module.exports = function (grunt) {
     'ngtemplates',
     'jshint:beforeConcat',
     'concat',
-    'ngmin',
-    'jshint:afterConcat',
+    'ngAnnotate',
     'uglify',
     'cssmin',
   ]);
