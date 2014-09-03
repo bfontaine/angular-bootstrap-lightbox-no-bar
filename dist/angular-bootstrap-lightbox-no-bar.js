@@ -9,34 +9,6 @@ angular.module('bootstrapLightbox').run(['$templateCache', function($templateCac
   );
 
 }]);
-angular.module('bootstrapLightbox').service('ImageLoader', function ($q) {
-  this.load = function (url) {
-    var deferred = $q.defer();
-
-    var image = new Image();
-
-    // when the image has loaded
-    image.onload = function () {
-      // check image properties for possible errors
-      if ((typeof this.complete === 'boolean' && this.complete === false) ||
-          (typeof this.naturalWidth === 'number' && this.naturalWidth === 0)) {
-        deferred.reject();
-      }
-
-      deferred.resolve();
-    };
-
-    // when the image fails to load
-    image.onerror = function () {
-      deferred.reject();
-    };
-
-    // start loading the image
-    image.src = url;
-
-    return deferred.promise;
-  };
-});
 angular.module('bootstrapLightbox').provider('Lightbox', function () {
   this.templateUrl = 'lightbox.html';
 
@@ -101,85 +73,59 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
     };
   };
 
-  this.$get = function ($document, $modal, $timeout, ImageLoader) {
-    // array of all images to be shown in the lightbox (not Image objects)
+  this.$get = function service($document, $modal, $timeout) {
+    // whether the lightbox is currently open; used in the keydown event handler
+    var opened = false;
+
+    // array of all images to be shown in the lightbox
     var images = [];
 
     // the index of the image currently shown (Lightbox.image)
-    var index = -1;
+    var index = 0;
 
     // the service object
     var Lightbox = {};
 
-    // configurable properties
+    // config
     Lightbox.templateUrl = this.templateUrl;
     Lightbox.calculateImageDimensionLimits = this.calculateImageDimensionLimits;
     Lightbox.calculateModalDimensions = this.calculateModalDimensions;
 
-    // whether keyboard navigation is currently enabled for navigating through
-    // images in the lightbox
-    Lightbox.keyboardNavEnabled = false;
-
-    // the current image
-    Lightbox.image = {};
-
     // open the lightbox modal
     Lightbox.openModal = function (newImages, newIndex) {
       images = newImages;
-      Lightbox.setImage(newIndex);
+      index = newIndex;
+      Lightbox.image = images[index];
 
       $modal.open({
         'templateUrl': Lightbox.templateUrl,
         'controller': ['$scope', function ($scope) {
           // $scope is the modal scope, a child of $rootScope
           $scope.Lightbox = Lightbox;
-
-          Lightbox.keyboardNavEnabled = true;
+          opened = true;
         }],
         'windowClass': 'lightbox-modal'
-      }).result.finally(function () { // close
-        // prevent the lightbox from flickering from the old image when it gets
-        // opened again
-        Lightbox.image = {};
-        Lightbox.keyboardNavEnabled = false;
+      }).result.finally(function () {
+        opened = false;
       });
     };
 
-    Lightbox.setImage = function (newIndex) {
-      if (!(newIndex in images) || !('url' in images[newIndex])) {
-        throw 'Invalid image.';
-      }
-
-      var success = function () {
-        index = newIndex;
-        Lightbox.image = images[index];
-      };
-
-      // load the image before setting it, so everything in the view is updated
-      // at the same time; otherwise, the previous image remains while the
-      // current image is loading
-      ImageLoader.load(images[newIndex].url).then(success, function () {
-        success();
-
-        // blank image
-        Lightbox.image.url = '//:0';
-        // use the caption to show the user an error
-        Lightbox.image.caption = 'Failed to load image';
-      });
+    // helper for the image navigation methods below
+    var setImage = function (newIndex) {
+      index = newIndex;
+      Lightbox.image = images[index];
     };
-
-    // methods for navigation
     Lightbox.firstImage = function () {
-      Lightbox.setImage(0);
+      setImage(0);
     };
     Lightbox.prevImage = function () {
-      Lightbox.setImage((index - 1 + images.length) % images.length);
+      setImage((index - 1 + images.length) % images.length);
     };
     Lightbox.nextImage = function () {
-      Lightbox.setImage((index + 1) % images.length);
+      setImage((index + 1) % images.length);
     };
     Lightbox.lastImage = function () {
-      Lightbox.setImage(images.length - 1);
+      setImage(images.length - 1);
     };
 
     /**
@@ -189,40 +135,28 @@ angular.module('bootstrapLightbox').provider('Lightbox', function () {
      */
     Lightbox.setImages = function (newImages) {
       images = newImages;
-      Lightbox.setImage(index);
+      Lightbox.image = images[index];
     };
 
     /**
      * Bind the left and right arrow keys for image navigation. This event
-     *   handler never gets unbinded. Disable this using the
-     *   keyboardNavEnabled flag. It is automatically disabled when
-     *   the target is an input and or a textarea.
+     *   handler never gets unbinded.
      */
     $document.bind('keydown', function (event) {
-      if (!Lightbox.keyboardNavEnabled) {
-        return;
-      }
-
-      // method of Lightbox to call
-      var method = null;
-
-      switch (event.which) {
-      case 39: // right arrow key
-        method = 'nextImage';
-        break;
-      case 37: // left arrow key
-        method = 'prevImage';
-        break;
-      }
-
-      if (method !== null && ['input', 'textarea'].indexOf(
-          event.target.tagName.toLowerCase()) === -1) {
-        // the view doesn't update without a manual digest
-        $timeout(function () {
-          Lightbox[method]();
-        });
-
-        event.preventDefault();
+      if (opened) {
+        switch (event.which) {
+        case 39: // right arrow key
+          // don't know why the view doesn't update without this manual digest
+          $timeout(function () {
+            Lightbox.nextImage();
+          });
+          return false;
+        case 37: // left arrow key
+          $timeout(function () {
+            Lightbox.prevImage();
+          });
+          return false;
+        }
       }
     });
 
@@ -289,14 +223,10 @@ angular.module('bootstrapLightbox')
     }
 
     return {
-      'width': displayW || 0,
-      'height': displayH || 0 // NaN is possible when dimensions.width is 0
+      'width': displayW,
+      'height': displayH
     };
   };
-
-  // the dimensions of the image
-  var imageWidth = 0;
-  var imageHeight = 0;
 
   return {
     'link': function (scope, element, attrs) {
@@ -305,6 +235,9 @@ angular.module('bootstrapLightbox')
         // get the window dimensions
         var windowWidth = $window.innerWidth;
         var windowHeight = $window.innerHeight;
+
+        var imageWidth = scope.Lightbox.image.width;
+        var imageHeight = scope.Lightbox.image.height;
 
         // calculate the max/min dimensions for the image
         var imageDimensionLimits = Lightbox.calculateImageDimensionLimits({
@@ -348,9 +281,9 @@ angular.module('bootstrapLightbox')
           'width': modalDimensions.width + 'px'
         });
 
-        // .modal-content has no width specified; if we set the width on
-        // .modal-content and not on .modal-dialog, .modal-dialog retains its
-        // default width of 600px and that places .modal-content off center
+        // .modal-content has no width specified; if we set the width on .modal-
+        // .content and not on.modal-dialog, .modal-dialog retains its default
+        // .width of 600px and that places .modal-content off center
         angular.element(
           document.querySelector('.lightbox-modal .modal-content')
         ).css({
@@ -362,21 +295,22 @@ angular.module('bootstrapLightbox')
       scope.$watch(function () {
         return attrs.lightboxSrc;
       }, function (src) {
-        // blank the image before resizing the element; see
-        // http://stackoverflow.com/questions/5775469/whats-the-valid-way-to-include-an-image-with-no-src
-        element[0].src = '//:0';
+        img = new Image();
 
-        var image = new Image();
-        image.src = src;
+        // start loading the image
+        img.src = src;
 
-        // these variables must be set before resize(), as they are used in it
-        imageWidth = image.naturalWidth;
-        imageHeight = image.naturalHeight;
+        // when the image has loaded
+        img.onload = function() {
+          // blank the image before resizing the element; see
+          // http://stackoverflow.com/questions/5775469/whats-the-valid-way-to-include-an-image-with-no-src
+          element[0].src = '//:0';
 
-        resize();
+          resize();
 
-        // show the image
-        element[0].src = src;
+          // show the image
+          element[0].src = src;
+        };
       });
 
       // resize the image and modal whenever the window gets resized
